@@ -1,201 +1,152 @@
-# Flutter Paged Views
+# Paged View
 
-<p align="center">
-  <img src="https://img.shields.io/badge/flutter-paged_views-blue" alt="Flutter Paged Views" />
-</p>
+A Flutter package that provides pagination widgets for displaying large datasets in lists, grids, and page views with lazy loading capabilities.
 
-<p align="center">
-  <a href="https://pub.dev/packages/flutter_paged_views"><img src="https://img.shields.io/pub/v/flutter_paged_views.svg" alt="Pub Version"></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple.svg" alt="MIT License"></a>
-  <a href="https://flutter.dev"><img src="https://img.shields.io/badge/platform-flutter-ff69b4.svg" alt="Flutter Platform"></a>
-</p>
+## Features
 
----
+- **PagedListView** - Paginated list with optional separators
+- **PagedGridView** - Paginated grid layout
+- **PagedPageView** - Paginated page view for swiping through items
+- **PagedSliverList** - Sliver list for use in CustomScrollView
+- **PagedSliverGrid** - Sliver grid for use in CustomScrollView
+- **Customizable indicators** - Built-in progress, error, and empty state indicators
+- **State management agnostic** - Works with any state management solution
+- **Flexible architecture** - Implement your own PagingState or use the provided PaginatedState
 
-A **minimal, flexible pagination library** for Flutter that provides essential widgets for building paginated lists, grids, and page views. Designed to work seamlessly with any state management solution, especially BLoC/Cubit.
-
-## ✨ Key Features
-
-- **🎯 Minimal & Focused** - Only the essential pagination widgets you need
-- **🏗️ State Management Agnostic** - Works with BLoC, Cubit, Riverpod, or any state solution
-- **📱 Essential Widgets** - PagedListView, PagedGridView, PagedPageView, and their Sliver variants
-- **⚙️ Highly Customizable** - Bring your own indicators, state management, and styling
-- **🪶 Lightweight** - Minimal dependencies, maximum flexibility
-
-## 📦 Installation
+## Installation
 
 Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_paged_views: ^1.0.0
+  paged_view: ^5.1.0
 ```
 
-## 🚀 Quick Start
+## Basic Usage
 
-### With BLoC/Cubit
+### 1. Define your state
+
+Implement the `PagingState` interface or use the provided `PaginatedState`:
 
 ```dart
-class PhotoListPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PhotoCubit, PhotoState>(
-      builder: (context, state) {
-        return PagedListView<int, Photo>(
-          state: state,
-          fetchNextPage: () => context.read<PhotoCubit>().loadNextPage(),
-          builderDelegate: PagedChildBuilderDelegate<Photo>(
-            itemBuilder: (context, photo, index) => PhotoTile(photo: photo),
-            firstPageProgressIndicatorBuilder: (context) => 
-                const Center(child: CircularProgressIndicator()),
-            newPageProgressIndicatorBuilder: (context) => 
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-            firstPageErrorIndicatorBuilder: (context) => 
-                ErrorWidget(onRetry: () => context.read<PhotoCubit>().retry()),
-            noItemsFoundIndicatorBuilder: (context) => 
-                const Center(child: Text('No photos found')),
-          ),
-        );
-      },
-    );
-  }
+// Using the provided PaginatedState
+PagingState<int, Photo> state = const PaginatedState<int, Photo>();
+
+// Or implement your own
+class MyPagingState implements PagingState<int, Photo> {
+  // Implementation details...
 }
 ```
 
-### Your State Implementation
+### 2. Use with PagedListView
 
 ```dart
-// Implement the PagingState interface in your BLoC/Cubit state
-class PhotoState implements PagingState<int, Photo> {
-  const PhotoState({
-    this.photos = const [],
-    this.pageKeys = const [],
-    this.error,
-    this.hasNextPage = true,
-    this.isLoading = false,
-  });
-
-  final List<Photo> photos;
-  final List<int> pageKeys;
-  final Object? error;
-  final bool hasNextPage;
-  final bool isLoading;
-
-  @override
-  List<List<Photo>> get pages => photos.isEmpty 
-      ? [] 
-      : [photos]; // Adapt to your page structure
-
-  @override
-  List<int> get keys => pageKeys;
-
-  @override
-  PagingState<int, Photo> copyWith({
-    List<List<Photo>>? pages,
-    List<int>? keys,
-    Object? error,
-    bool? hasNextPage,
-    bool? isLoading,
-  }) {
-    // Your copyWith implementation
-  }
-
-  @override
-  PagingState<int, Photo> reset() {
-    return const PhotoState();
-  }
-}
-```
-
-## 🎨 Available Widgets
-
-### Lists
-- `PagedListView` - Scrollable list with pagination
-- `PagedSliverList` - Sliver version for CustomScrollView
-
-### Grids
-- `PagedGridView` - Grid with pagination support
-- `PagedSliverGrid` - Sliver grid for CustomScrollView
-
-### Page Views
-- `PagedPageView` - PageView with pagination
-
-### Separated Lists
-```dart
-PagedListView.separated(
+PagedListView<int, Photo>(
   state: state,
-  fetchNextPage: fetchNextPage,
-  builderDelegate: builderDelegate,
+  fetchNextPage: () => loadNextPage(),
+  builderDelegate: PagedChildBuilderDelegate<Photo>(
+    itemBuilder: (context, item, index) => ListTile(
+      title: Text(item.title),
+      subtitle: Text(item.description),
+    ),
+  ),
+)
+```
+
+### 3. With separators
+
+```dart
+PagedListView<int, Photo>.separated(
+  state: state,
+  fetchNextPage: () => loadNextPage(),
+  builderDelegate: PagedChildBuilderDelegate<Photo>(
+    itemBuilder: (context, item, index) => ListTile(
+      title: Text(item.title),
+    ),
+  ),
   separatorBuilder: (context, index) => const Divider(),
 )
 ```
 
-## 🔧 Customization
+## Advanced Usage
 
-### Custom Indicators
+### PagedGridView
 
 ```dart
-PagedChildBuilderDelegate<Item>(
-  itemBuilder: (context, item, index) => ItemTile(item: item),
-  
-  // Customize loading indicators
-  firstPageProgressIndicatorBuilder: (context) => 
-      const CustomLoadingWidget(),
-  
-  // Customize error indicators  
-  firstPageErrorIndicatorBuilder: (context) => 
-      CustomErrorWidget(onRetry: retryCallback),
-  
-  // Customize empty state
-  noItemsFoundIndicatorBuilder: (context) => 
-      const CustomEmptyWidget(),
+PagedGridView<int, Photo>(
+  state: state,
+  fetchNextPage: () => loadNextPage(),
+  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: 200,
+    childAspectRatio: 1.0,
+    crossAxisSpacing: 10,
+    mainAxisSpacing: 10,
+  ),
+  builderDelegate: PagedChildBuilderDelegate<Photo>(
+    itemBuilder: (context, item, index) => Image.network(item.imageUrl),
+  ),
 )
 ```
 
-### With Custom ScrollView
+### PagedPageView
+
+```dart
+PagedPageView<int, Photo>(
+  state: state,
+  fetchNextPage: () => loadNextPage(),
+  builderDelegate: PagedChildBuilderDelegate<Photo>(
+    itemBuilder: (context, item, index) => PhotoCard(photo: item),
+  ),
+)
+```
+
+### With CustomScrollView
 
 ```dart
 CustomScrollView(
   slivers: [
-    SliverAppBar(title: Text('Photos')),
-    PagedSliverList<int, Photo>(
+    const SliverAppBar(title: Text('Photos')),
+    PagedSliverGrid<int, Photo>(
       state: state,
-      fetchNextPage: fetchNextPage,
-      builderDelegate: builderDelegate,
+      fetchNextPage: () => loadNextPage(),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 200,
+        childAspectRatio: 1.0,
+      ),
+      builderDelegate: PagedChildBuilderDelegate<Photo>(
+        itemBuilder: (context, item, index) => Image.network(item.imageUrl),
+      ),
     ),
   ],
 )
 ```
 
-## 🏗️ Architecture
+## State Management Examples
 
-This library provides the UI widgets while leaving state management entirely up to you:
+### With BLoC
 
-1. **Implement `PagingState`** in your state class
-2. **Use your preferred state management** (BLoC, Cubit, Riverpod, etc.)
-3. **Pass state and callback** to the paged widgets
-4. **Customize indicators** to match your app's design
-
-## 🤝 State Management Examples
-
-### With Cubit
 ```dart
-class PhotoCubit extends Cubit<PhotoState> {
-  PhotoCubit() : super(const PhotoState());
+class PhotoBloc extends Bloc<PhotoEvent, PaginatedState<int, Photo>> {
+  PhotoBloc() : super(const PaginatedState<int, Photo>()) {
+    on<LoadNextPage>(_onLoadNextPage);
+  }
 
-  Future<void> loadNextPage() async {
+  Future<void> _onLoadNextPage(
+    LoadNextPage event,
+    Emitter<PaginatedState<int, Photo>> emit,
+  ) async {
     if (state.isLoading) return;
     
     emit(state.copyWith(isLoading: true));
     
     try {
-      final photos = await api.getPhotos(state.nextPageKey);
+      final nextPageKey = (state.keys?.lastOrNull ?? 0) + 1;
+      final newPhotos = await photoRepository.getPhotos(nextPageKey);
+      
       emit(state.copyWith(
-        photos: [...state.photos, ...photos],
-        hasNextPage: photos.isNotEmpty,
+        pages: [...?state.pages, newPhotos],
+        keys: [...?state.keys, nextPageKey],
+        hasNextPage: newPhotos.isNotEmpty,
         isLoading: false,
       ));
     } catch (error) {
@@ -205,29 +156,94 @@ class PhotoCubit extends Cubit<PhotoState> {
 }
 ```
 
-### With Riverpod
+### Direct state management
+
 ```dart
-final photoProvider = StateNotifierProvider<PhotoNotifier, PhotoState>((ref) {
-  return PhotoNotifier();
-});
+class PhotoPage extends StatefulWidget {
+  @override
+  State<PhotoPage> createState() => _PhotoPageState();
+}
 
-class PhotoNotifier extends StateNotifier<PhotoState> {
-  PhotoNotifier() : super(const PhotoState());
+class _PhotoPageState extends State<PhotoPage> {
+  PagingState<int, Photo> _state = const PaginatedState<int, Photo>();
 
-  Future<void> loadNextPage() async {
-    // Similar implementation
+  void _fetchNextPage() async {
+    if (_state.isLoading) return;
+
+    setState(() {
+      _state = _state.copyWith(isLoading: true, error: null);
+    });
+
+    try {
+      final nextPageKey = (_state.keys?.lastOrNull ?? 0) + 1;
+      final newPhotos = await RemoteApi.getPhotos(nextPageKey);
+      final isLastPage = newPhotos.isEmpty;
+
+      setState(() {
+        _state = _state.copyWith(
+          pages: [...?_state.pages, newPhotos],
+          keys: [...?_state.keys, nextPageKey],
+          hasNextPage: !isLastPage,
+          isLoading: false,
+        );
+      });
+    } catch (error) {
+      setState(() {
+        _state = _state.copyWith(error: error, isLoading: false);
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNextPage();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PagedListView<int, Photo>(
+      state: _state,
+      fetchNextPage: _fetchNextPage,
+      builderDelegate: PagedChildBuilderDelegate<Photo>(
+        itemBuilder: (context, item, index) => PhotoTile(photo: item),
+      ),
+    );
   }
 }
 ```
 
-## 📝 License
+## Customization
 
-MIT License. See [LICENSE](LICENSE) for details.
+### Custom indicators
 
-## 🙌 Contributing
+```dart
+PagedChildBuilderDelegate<Photo>(
+  itemBuilder: (context, item, index) => PhotoTile(photo: item),
+  firstPageProgressIndicatorBuilder: (context) => 
+    const Center(child: CircularProgressIndicator()),
+  newPageProgressIndicatorBuilder: (context) => 
+    const Padding(
+      padding: EdgeInsets.all(16),
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  firstPageErrorIndicatorBuilder: (context) => 
+    ErrorWidget(onRetry: () => retryFirstPage()),
+  newPageErrorIndicatorBuilder: (context) => 
+    ErrorWidget(onRetry: () => retryNewPage()),
+  noItemsFoundIndicatorBuilder: (context) => 
+    const Center(child: Text('No items found')),
+)
+```
 
-Contributions are welcome! This library focuses on providing minimal, essential pagination widgets. Please keep contributions aligned with this philosophy.
+## Examples
 
----
+Check out the `/example` folder for complete working examples:
 
-**Built with ❤️ for the Flutter community**
+- **list_view.dart** - Basic list with BLoC state management
+- **sliver_grid.dart** - Grid layout with search functionality
+- **page_view.dart** - Page view with direct state management
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
