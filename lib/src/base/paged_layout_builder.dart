@@ -216,7 +216,7 @@ class _PagedLayoutBuilderState<PageKeyType, ItemType>
             (context, index) => _buildListItemWidget(
               context,
               index,
-              _state.items!,
+              _state.items ?? [],
             ),
             _itemCount,
             _noMoreItemsIndicatorBuilder,
