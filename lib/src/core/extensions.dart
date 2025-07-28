@@ -1,5 +1,5 @@
-import 'package:paged_view/src/core/paging_state.dart';
 import 'package:meta/meta.dart';
+import 'package:paged_view/src/core/paging_state.dart';
 
 /// Helper extensions to make working with [PagingState] easier.
 extension PagingStateExtension<PageKeyType, ItemType> on PagingState<PageKeyType, ItemType> {
@@ -47,5 +47,5 @@ extension IntPagingStateExtension<ItemType> on PagingState<int, ItemType> {
   /// Convenience method to get the next page key.
   ///
   /// Assumes that keys start at 1 and increment by 1.
-  int get nextIntPageKey => (keys?.lastOrNull ?? 0) + 1;
+  int get nextIntPageKey => isRefreshing ? 1 : (keys?.lastOrNull ?? 0) + 1;
 }

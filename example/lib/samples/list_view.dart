@@ -21,7 +21,7 @@ class _ListViewScreenState extends State<ListViewScreen> {
   @override
   void initState() {
     super.initState();
-    bloc.add(PagingFetchNext());
+    bloc.add(const PagingFetchNext());
   }
 
   @override
@@ -29,27 +29,30 @@ class _ListViewScreenState extends State<ListViewScreen> {
         create: (context) => bloc,
         child: Scaffold(
           appBar: AppBar(),
-          body: BlocBuilder<PagingBloc<Photo>, PaginatedState<Photo>>(
+          body: BlocBuilder<PagingBloc<Photo>, DefaultPaginatedState<int, Photo>>(
             builder: (context, state) {
               return RefreshIndicator(
-                  onRefresh: () async => context.read<PagingBloc<Photo>>().add(PagingRefresh()),
-
-                  /// The [PagingListener] is a widget that listens to the controller and
-                  /// rebuilds the UI based on the state of the controller.
-                  /// Its the easiest way to bind your controller to a Paged layout.
-                  child: PagedListView<int, Photo>.separated(
-                    state: state,
-                    fetchNextPage: () => context.read<PagingBloc<Photo>>().add(PagingFetchNext()),
-                    itemExtent: 48,
-                    builderDelegate: PagedChildBuilderDelegate(
-                      animateTransitions: true,
-                      itemBuilder: (context, item, index) => ImageListTile(
-                        key: ValueKey(item.id),
-                        item: item,
-                      ),
+                onRefresh: () async {
+                  context.read<PagingBloc<Photo>>().add(PagingRefresh());
+                  await bloc.stream.firstWhere(
+                    (state) => !state.isRefreshing,
+                    orElse: () => state,
+                  );
+                },
+                child: PagedListView<int, Photo>.separated(
+                  state: state,
+                  fetchNextPage: () => bloc.add(const PagingFetchNext()),
+                  itemExtent: 48,
+                  builderDelegate: PagedChildBuilderDelegate(
+                    animateTransitions: true,
+                    itemBuilder: (context, item, index) => ImageListTile(
+                      key: ValueKey(item.id),
+                      item: item,
                     ),
-                    separatorBuilder: (context, index) => const Divider(),
-                  ));
+                  ),
+                  separatorBuilder: (context, index) => const Divider(),
+                ),
+              );
             },
           ),
         ),

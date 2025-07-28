@@ -168,6 +168,7 @@ class _PagedLayoutBuilderState<PageKeyType, ItemType>
       animateTransitions: _builderDelegate.animateTransitions,
       transitionDuration: _builderDelegate.transitionDuration,
       layoutProtocol: _layoutProtocol,
+      refreshCompletedAt: _state.refreshCompletedAt,
       child: switch (_state.status) {
         PagingStatus.loadingFirstPage => _FirstPageStatusIndicatorBuilder(
             key: const ValueKey(PagingStatus.loadingFirstPage),
@@ -263,24 +264,33 @@ class _PagedLayoutAnimator extends StatelessWidget {
     required this.animateTransitions,
     required this.transitionDuration,
     required this.layoutProtocol,
+    this.refreshCompletedAt,
   });
 
   final Widget child;
   final bool animateTransitions;
   final Duration transitionDuration;
   final PagedLayoutProtocol layoutProtocol;
+  final DateTime? refreshCompletedAt;
 
   @override
   Widget build(BuildContext context) {
     if (!animateTransitions) return child;
+
+    // Use refresh completion timestamp as key to trigger animation when refresh completes
+    final childWithKey = KeyedSubtree(
+      key: ValueKey(refreshCompletedAt?.millisecondsSinceEpoch),
+      child: child,
+    );
+
     return switch (layoutProtocol) {
       PagedLayoutProtocol.sliver => SliverAnimatedSwitcher(
           duration: transitionDuration,
-          child: child,
+          child: childWithKey,
         ),
       PagedLayoutProtocol.box => AnimatedSwitcher(
           duration: transitionDuration,
-          child: child,
+          child: childWithKey,
         ),
     };
   }

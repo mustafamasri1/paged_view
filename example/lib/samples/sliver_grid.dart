@@ -22,33 +22,39 @@ class _SliverGridScreenState extends State<SliverGridScreen> {
   void initState() {
     super.initState();
 
-    bloc.add(PagingFetchNext());
+    bloc.add(const PagingFetchNext());
   }
 
   @override
   Widget build(BuildContext context) => BlocProvider(
         create: (context) => bloc,
-        child: BlocBuilder<PagingBloc<Photo>, PaginatedState<Photo>>(builder: (context, state) {
+        child: BlocBuilder<PagingBloc<Photo>, DefaultPaginatedState<int, Photo>>(
+            builder: (context, state) {
           return LayoutBuilder(
             builder: (context, constraints) {
               final bloc = context.read<PagingBloc<Photo>>();
               return SafeArea(
                 child: RefreshIndicator(
-                  onRefresh: () async => bloc.add(PagingRefresh()),
+                  onRefresh: () async {
+                    bloc.add(PagingRefresh());
+                    await bloc.stream.firstWhere((state) => !state.isRefreshing);
+                  },
                   child: CustomScrollView(
                     slivers: [
                       SearchInputSliver(
                         onChanged: (searchTerm) => bloc.add(PagingChangeSearch(searchTerm)),
-                        getSuggestions: (searchTerm) => (state.items
-                                ?.expand((photo) => photo.title.split(' '))
-                                .where((e) => e.contains(searchTerm))
-                                .toSet()
-                                .toList() ??
-                            []),
+                        getSuggestions: (searchTerm) => List.from(
+                          state.items
+                                  ?.expand((photo) => photo.title.split(' '))
+                                  .where((e) => e.contains(searchTerm))
+                                  .toSet()
+                                  .toList() ??
+                              [],
+                        ),
                       ),
                       PagedSliverGrid<int, Photo>(
                         state: state,
-                        fetchNextPage: () => bloc.add(PagingFetchNext()),
+                        fetchNextPage: () => bloc.add(const PagingFetchNext()),
                         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                           childAspectRatio: 1 / 1.2,
                           crossAxisSpacing: 10,
@@ -56,6 +62,7 @@ class _SliverGridScreenState extends State<SliverGridScreen> {
                           maxCrossAxisExtent: 200,
                         ),
                         builderDelegate: PagedChildBuilderDelegate(
+                          animateTransitions: true,
                           itemBuilder: (context, item, index) => CachedNetworkImage(
                             imageUrl: item.thumbnail,
                             fit: BoxFit.cover,

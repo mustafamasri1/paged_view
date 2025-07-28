@@ -27,6 +27,13 @@ abstract class PagingState<PageKeyType, ItemType> {
   /// Will be `true` if a page is currently being fetched.
   bool get isLoading;
 
+  /// Will be `true` if the data is being refreshed while preserving existing pages.
+  bool get isRefreshing;
+
+  /// Timestamp indicating when the last refresh completed.
+  /// Used to trigger UI animations when refresh finishes.
+  DateTime? get refreshCompletedAt;
+
   /// Creates a copy of this [PagingState] but with the given fields replaced by the new values.
   /// If a field is not provided, it will default to the current value.
   ///
@@ -40,6 +47,8 @@ abstract class PagingState<PageKeyType, ItemType> {
     Defaulted<Object?>? error = const Omit(),
     Defaulted<bool>? hasNextPage = const Omit(),
     Defaulted<bool>? isLoading = const Omit(),
+    Defaulted<bool>? isRefreshing = const Omit(),
+    Defaulted<DateTime?>? refreshCompletedAt = const Omit(),
   });
 
   /// Returns a copy this [PagingState] but
@@ -51,6 +60,30 @@ abstract class PagingState<PageKeyType, ItemType> {
   /// The reason we use this instead of creating a new instance is so that
   /// a custom [PagingState] can be reset without losing its type.
   PagingState<PageKeyType, ItemType> reset();
+
+  /// Returns a copy of this [PagingState] with isRefreshing set to true
+  /// while preserving existing pages and keys.
+  ///
+  /// This is useful for refresh operations where you want to show a refresh indicator
+  /// while keeping the existing data visible to the user.
+  PagingState<PageKeyType, ItemType> refreshing();
+
+  /// Appends a new page to the state, handling both refresh and pagination scenarios.
+  ///
+  /// If [isRefreshing] is true, this replaces all existing pages with the new page
+  /// and sets [refreshCompletedAt] to trigger animations.
+  /// If [isRefreshing] is false, this appends the new page to existing pages.
+  PagingState<PageKeyType, ItemType> appendPage(
+    List<ItemType> newPage,
+    PageKeyType pageKey, {
+    bool isLastPage = false,
+  });
+
+  /// Sets an error state, handling both refresh and pagination error scenarios.
+  ///
+  /// If [isRefreshing] is true, this sets [refreshCompletedAt] to complete the refresh cycle.
+  /// If [isRefreshing] is false, this preserves the current [refreshCompletedAt] value.
+  PagingState<PageKeyType, ItemType> setError(Object error);
 }
 
 typedef Defaulted<T> = FutureOr<T>;

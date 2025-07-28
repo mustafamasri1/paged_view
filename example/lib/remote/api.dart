@@ -1,21 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
-import 'package:infinite_example/remote/item.dart';
 import 'package:http/http.dart' as http;
+import 'package:infinite_example/remote/item.dart';
 
 sealed class RemoteApi {
   static Future<List<Photo>> getPhotos(
     int page, {
     int limit = 20,
     String? search,
-  }) {
-    if (Random().nextInt(10) == 0) {
-      throw RandomChanceException();
-    }
-
+  }) async {
+    await Future.delayed(const Duration(seconds: 1));
+    throw UnimplementedError(
+      'RemoteApi.getPhotos is not implemented. Please provide a valid implementation.',
+    );
     return Future.delayed(
       const Duration(seconds: 0),
       () => http.get(_ApiUrlBuilder.photos(page, limit, search), headers: {

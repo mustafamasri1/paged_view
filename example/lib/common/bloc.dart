@@ -7,7 +7,10 @@ sealed class PagingEvent {
   const PagingEvent();
 }
 
-final class PagingFetchNext extends PagingEvent {}
+final class PagingFetchNext extends PagingEvent {
+  final int? pageKey;
+  const PagingFetchNext({this.pageKey});
+}
 
 final class PagingRefresh extends PagingEvent {}
 
@@ -40,10 +43,10 @@ class BlocCancelToken {
   }
 }
 
-class PagingBloc<T> extends Bloc<PagingEvent, PaginatedState<T>> {
+class PagingBloc<T> extends Bloc<PagingEvent, DefaultPaginatedState<int, T>> {
   PagingBloc({
     required this.fetchFn,
-  }) : super(PaginatedState<T>()) {
+  }) : super(DefaultPaginatedState<int, T>()) {
     on<PagingFetchNext>(_onFetchNext);
     on<PagingRefresh>(_onRefresh);
   }
@@ -52,12 +55,12 @@ class PagingBloc<T> extends Bloc<PagingEvent, PaginatedState<T>> {
 
   Future<void> _onFetchNext(
     PagingFetchNext event,
-    Emitter<PaginatedState<T>> emit,
+    Emitter<DefaultPaginatedState<int, T>> emit,
   ) async {
     final current = state;
     if (current.isLoading || !current.hasNextPage) return;
 
-    final pageKey = current.lastPageIsEmpty ? null : current.nextIntPageKey;
+    final pageKey = (current.lastPageIsEmpty ? null : current.nextIntPageKey);
     if (pageKey == null) {
       emit(current.copyWith(hasNextPage: false));
       return;
@@ -70,25 +73,18 @@ class PagingBloc<T> extends Bloc<PagingEvent, PaginatedState<T>> {
 
     try {
       final result = await fetchFn!(pageKey);
-
       final isLastPage = result.isEmpty;
-      emit(state.copyWith(
-        isLoading: false,
-        error: null,
-        hasNextPage: !isLastPage,
-        pages: [...?state.pages, result],
-        keys: [...?state.keys, pageKey],
-      ));
+      emit(state.appendPage(result, pageKey, isLastPage: isLastPage));
     } catch (e) {
-      emit(state.copyWith(isLoading: false, error: e));
+      emit(state.setError(e));
     }
   }
 
   Future<void> _onRefresh(
     PagingRefresh event,
-    Emitter<PaginatedState<T>> emit,
+    Emitter<DefaultPaginatedState<int, T>> emit,
   ) async {
-    emit(state.reset());
-    add(PagingFetchNext());
+    emit(state.refreshing());
+    add(const PagingFetchNext());
   }
 }
