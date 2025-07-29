@@ -29,7 +29,7 @@ abstract class PagingState<PageKeyType, ItemType, ErrorType extends Object> {
     bool hasNextPage,
     bool isLoading,
     bool isRefreshing,
-    int total,
+    int totalResults,
   }) = BasePagingState<PageKeyType, ItemType, ErrorType>;
 
   /// The pages fetched so far.
@@ -55,7 +55,7 @@ abstract class PagingState<PageKeyType, ItemType, ErrorType extends Object> {
   bool get isLoading;
 
   /// the total result count of the paginated data.
-  int get total;
+  int get totalResults;
 
   /// Will be `true` if the data is currently being refreshed.
   /// During refresh, pages and keys remain available while new data is fetched.
@@ -76,7 +76,7 @@ abstract class PagingState<PageKeyType, ItemType, ErrorType extends Object> {
     Defaulted<bool>? hasNextPage = const Omit(),
     Defaulted<bool>? isLoading = const Omit(),
     Defaulted<bool>? isRefreshing = const Omit(),
-    Defaulted<int>? total = const Omit(),
+    Defaulted<int>? totalResults = const Omit(),
   });
 
   /// Returns a copy this [PagingState] but
@@ -98,6 +98,7 @@ abstract class PagingState<PageKeyType, ItemType, ErrorType extends Object> {
     required List<ItemType> items,
     required PageKeyType pageKey,
     required bool hasNextPage,
+    int? totalResults,
   });
 
   /// Sets an error state and stops any loading/refreshing operations.

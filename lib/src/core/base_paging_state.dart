@@ -12,7 +12,7 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
     this.hasNextPage = true,
     this.isLoading = false,
     this.isRefreshing = false,
-    this.total = 0,
+    this.totalResults = 0,
   });
 
   @override
@@ -33,7 +33,8 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
   @override
   final bool isRefreshing;
 
-  final int total;
+  @override
+  final int totalResults;
 
   @override
   PagingState<PageKeyType, ItemType, ErrorType> copyWith({
@@ -43,7 +44,7 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
     Defaulted<bool>? hasNextPage = const Omit(),
     Defaulted<bool>? isLoading = const Omit(),
     Defaulted<bool>? isRefreshing = const Omit(),
-    Defaulted<int>? total = const Omit(),
+    Defaulted<int>? totalResults = const Omit(),
   }) {
     return BasePagingState<PageKeyType, ItemType, ErrorType>(
       pages: pages is Omit ? this.pages : pages as List<List<ItemType>>?,
@@ -52,7 +53,7 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
       hasNextPage: hasNextPage is Omit ? this.hasNextPage : hasNextPage as bool,
       isLoading: isLoading is Omit ? this.isLoading : isLoading as bool,
       isRefreshing: isRefreshing is Omit ? this.isRefreshing : isRefreshing as bool,
-      total: total is Omit ? this.total : total as int,
+      totalResults: totalResults is Omit ? this.totalResults : totalResults as int,
     );
   }
 
@@ -61,6 +62,7 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
     required List<ItemType> items,
     required PageKeyType pageKey,
     required bool hasNextPage,
+    int? totalResults,
   }) {
     final wasRefreshing = isRefreshing;
 
@@ -72,6 +74,7 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
         hasNextPage: hasNextPage,
         isLoading: false,
         isRefreshing: false,
+        totalResults: totalResults,
         error: null,
       );
     } else {
@@ -82,6 +85,7 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
       return copyWith(
         pages: newPages,
         keys: newKeys,
+        totalResults: totalResults,
         hasNextPage: hasNextPage,
         isLoading: false,
         error: null,
@@ -98,7 +102,7 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
       hasNextPage: true,
       isLoading: false,
       isRefreshing: false,
-      total: 0,
+      totalResults: 0,
     );
   }
 
@@ -136,7 +140,7 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
         other.hasNextPage == hasNextPage &&
         other.isLoading == isLoading &&
         other.isRefreshing == isRefreshing &&
-        other.total == total;
+        other.totalResults == totalResults;
   }
 
   @override
@@ -148,7 +152,7 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
       hasNextPage,
       isLoading,
       isRefreshing,
-      total,
+      totalResults,
     );
   }
 
@@ -161,6 +165,6 @@ class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
         'hasNextPage: $hasNextPage, '
         'isLoading: $isLoading, '
         'isRefreshing: $isRefreshing, '
-        'total: $total)';
+        'totalResults: $totalResults)';
   }
 }
