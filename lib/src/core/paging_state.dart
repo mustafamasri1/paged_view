@@ -54,6 +54,9 @@ abstract class PagingState<PageKeyType, ItemType, ErrorType extends Object> {
   /// Will be `true` if a page is currently being fetched.
   bool get isLoading;
 
+  /// the total result count of the paginated data.
+  int get total;
+
   /// Will be `true` if the data is currently being refreshed.
   /// During refresh, pages and keys remain available while new data is fetched.
   /// User interaction and scroll-triggered pagination are blocked during refresh.
