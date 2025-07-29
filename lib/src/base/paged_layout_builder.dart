@@ -61,7 +61,7 @@ class PagedLayoutBuilder<PageKeyType, ItemType> extends StatefulWidget {
   });
 
   /// The paging state for this layout.
-  final PagingState<PageKeyType, ItemType> state;
+  final PagingState<PageKeyType, ItemType, Object> state;
 
   /// A callback function that is triggered to request a new page of data.
   final NextPageCallback fetchNextPage;
@@ -103,7 +103,7 @@ class PagedLayoutBuilder<PageKeyType, ItemType> extends StatefulWidget {
 
 class _PagedLayoutBuilderState<PageKeyType, ItemType>
     extends State<PagedLayoutBuilder<PageKeyType, ItemType>> {
-  PagingState<PageKeyType, ItemType> get _state => widget.state;
+  PagingState<PageKeyType, ItemType, Object> get _state => widget.state;
 
   NextPageCallback get _fetchNextPage =>
       // We make sure to only schedule the fetch after the current build is done.
@@ -276,7 +276,7 @@ class _PagedLayoutAnimator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!animateTransitions) return child;
-    
+
     // Generate a unique key for refresh completion animations.
     // When refresh completes, refreshCompletedAt gets a new timestamp,
     // causing AnimatedSwitcher to detect the change and trigger animation.

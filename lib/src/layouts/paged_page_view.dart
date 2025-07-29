@@ -36,7 +36,7 @@ class PagedPageView<PageKeyType, ItemType> extends StatelessWidget {
   });
 
   /// Matches [PagedLayoutBuilder.state].
-  final PagingState<PageKeyType, ItemType> state;
+  final PagingState<PageKeyType, ItemType, Object> state;
 
   /// Matches [PagedLayoutBuilder.fetchNextPage].
   final NextPageCallback fetchNextPage;

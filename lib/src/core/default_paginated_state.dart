@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../../paged_view.dart';
 
 @immutable
-class DefaultPaginatedState<PageKeyType, ItemType> implements PagingState<PageKeyType, ItemType> {
+class DefaultPaginatedState<PageKeyType, ItemType> implements PagingState<PageKeyType, ItemType, Object> {
   const DefaultPaginatedState({
     this.pages,
     this.keys,

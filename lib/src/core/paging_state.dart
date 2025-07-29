@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 /// Represents the state of a paginated layout.
 @immutable
-abstract class PagingState<PageKeyType, ItemType> {
+abstract class PagingState<PageKeyType, ItemType, ErrorType extends Object> {
   /// The pages fetched so far.
   ///
   /// This contains all pages fetched so far.
@@ -19,7 +19,7 @@ abstract class PagingState<PageKeyType, ItemType> {
 
   /// The last error that occurred while fetching a page.
   /// This is null if no error occurred.
-  Object? get error;
+  ErrorType? get error;
 
   /// Will be `true` if there is a next page to be fetched.
   bool get hasNextPage;
@@ -31,12 +31,12 @@ abstract class PagingState<PageKeyType, ItemType> {
   bool get isRefreshing;
 
   /// Timestamp indicating when the last refresh operation completed.
-  /// 
+  ///
   /// This can be used for:
   /// - Triggering refresh completion animations
   /// - Displaying "Last refreshed at" information in the UI
   /// - Implementing refresh cooldown logic
-  /// 
+  ///
   /// The value is `null` when no refresh has been performed yet.
   DateTime? get refreshCompletedAt;
 
@@ -47,10 +47,10 @@ abstract class PagingState<PageKeyType, ItemType> {
   /// The Defaulted type is used to allow for the Omit sentinel value,
   /// which is required to distinguish between a parameter being omitted and a parameter being set to null.
   // copyWith a la Remi Rousselet: https://github.com/dart-lang/language/issues/137#issuecomment-583783054
-  PagingState<PageKeyType, ItemType> copyWith({
+  PagingState<PageKeyType, ItemType, ErrorType> copyWith({
     Defaulted<List<List<ItemType>>?>? pages = const Omit(),
     Defaulted<List<PageKeyType>?>? keys = const Omit(),
-    Defaulted<Object?>? error = const Omit(),
+    Defaulted<ErrorType?>? error = const Omit(),
     Defaulted<bool>? hasNextPage = const Omit(),
     Defaulted<bool>? isLoading = const Omit(),
     Defaulted<bool>? isRefreshing = const Omit(),
@@ -65,21 +65,21 @@ abstract class PagingState<PageKeyType, ItemType> {
   ///
   /// The reason we use this instead of creating a new instance is so that
   /// a custom [PagingState] can be reset without losing its type.
-  PagingState<PageKeyType, ItemType> reset();
+  PagingState<PageKeyType, ItemType, ErrorType> reset();
 
   /// Returns a copy of this [PagingState] with isRefreshing set to true
   /// while preserving existing pages and keys.
   ///
   /// This is useful for refresh operations where you want to show a refresh indicator
   /// while keeping the existing data visible to the user.
-  PagingState<PageKeyType, ItemType> refreshing();
+  PagingState<PageKeyType, ItemType, ErrorType> refreshing();
 
   /// Appends a new page to the state, handling both refresh and pagination scenarios.
   ///
   /// If [isRefreshing] is true, this replaces all existing pages with the new page
   /// and sets [refreshCompletedAt] to the current timestamp.
   /// If [isRefreshing] is false, this appends the new page to existing pages.
-  PagingState<PageKeyType, ItemType> appendPage(
+  PagingState<PageKeyType, ItemType, ErrorType> appendPage(
     List<ItemType> newPage,
     PageKeyType pageKey, {
     bool isLastPage = false,
@@ -90,7 +90,7 @@ abstract class PagingState<PageKeyType, ItemType> {
   /// If [isRefreshing] is true, this sets [refreshCompletedAt] to the current timestamp
   /// to complete the refresh cycle.
   /// If [isRefreshing] is false, this preserves the current [refreshCompletedAt] value.
-  PagingState<PageKeyType, ItemType> setError(Object error);
+  PagingState<PageKeyType, ItemType, ErrorType> setError(ErrorType error);
 }
 
 typedef Defaulted<T> = FutureOr<T>;

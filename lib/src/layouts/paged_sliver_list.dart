@@ -49,7 +49,7 @@ class PagedSliverList<PageKeyType, ItemType> extends StatelessWidget {
         _separatorBuilder = separatorBuilder;
 
   /// Matches [PagedLayoutBuilder.state].
-  final PagingState<PageKeyType, ItemType> state;
+  final PagingState<PageKeyType, ItemType, Object> state;
 
   /// Matches [PagedLayoutBuilder.fetchNextPage].
   final NextPageCallback fetchNextPage;
