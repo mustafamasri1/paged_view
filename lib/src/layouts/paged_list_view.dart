@@ -7,7 +7,7 @@ import 'package:paged_view/paged_view.dart';
 ///
 /// Wraps a [PagedSliverList] in a [BoxScrollView] so that it can be
 /// used without the need for a [CustomScrollView]. Similar to a [ListView].
-class PagedListView<PageKeyType, ItemType> extends BoxScrollView {
+class PagedListView<PageKeyType, ItemType, ErrorType extends Object> extends BoxScrollView {
   const PagedListView({
     required this.state,
     required this.fetchNextPage,
@@ -94,7 +94,7 @@ class PagedListView<PageKeyType, ItemType> extends BoxScrollView {
         );
 
   /// Matches [PagedLayoutBuilder.state].
-  final PagingState<PageKeyType, ItemType> state;
+  final PagingState<PageKeyType, ItemType, ErrorType> state;
 
   /// Matches [PagedLayoutBuilder.fetchNextPage].
   final NextPageCallback fetchNextPage;
@@ -131,7 +131,7 @@ class PagedListView<PageKeyType, ItemType> extends BoxScrollView {
   Widget buildChildLayout(BuildContext context) {
     final separatorBuilder = _separatorBuilder;
     return separatorBuilder != null
-        ? PagedSliverList<PageKeyType, ItemType>.separated(
+        ? PagedSliverList<PageKeyType, ItemType, ErrorType>.separated(
             builderDelegate: builderDelegate,
             state: state,
             fetchNextPage: fetchNextPage,
@@ -142,7 +142,7 @@ class PagedListView<PageKeyType, ItemType> extends BoxScrollView {
             itemExtent: itemExtent,
             shrinkWrapFirstPageIndicators: _shrinkWrapFirstPageIndicators,
           )
-        : PagedSliverList<PageKeyType, ItemType>(
+        : PagedSliverList<PageKeyType, ItemType, ErrorType>(
             builderDelegate: builderDelegate,
             state: state,
             fetchNextPage: fetchNextPage,
@@ -153,5 +153,14 @@ class PagedListView<PageKeyType, ItemType> extends BoxScrollView {
             shrinkWrapFirstPageIndicators: _shrinkWrapFirstPageIndicators,
             prototypeItem: prototypeItem,
           );
+  }
+
+  @override
+  ScrollPhysics? get physics {
+    // Disable scrolling during refresh to prevent interference
+    if (state.isRefreshing) {
+      return const NeverScrollableScrollPhysics();
+    }
+    return super.physics;
   }
 }

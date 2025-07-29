@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:infinite_example/common/bloc.dart';
-import 'package:infinite_example/common/search_input.dart';
 import 'package:infinite_example/remote/remote.dart';
 import 'package:paged_view/paged_view.dart';
 
@@ -22,7 +21,7 @@ class _SliverGridScreenState extends State<SliverGridScreen> {
   void initState() {
     super.initState();
 
-    bloc.add(PagingFetchNext());
+    bloc.add(const PagingFetchNext());
   }
 
   @override
@@ -34,21 +33,12 @@ class _SliverGridScreenState extends State<SliverGridScreen> {
               final bloc = context.read<PagingBloc<Photo>>();
               return SafeArea(
                 child: RefreshIndicator(
-                  onRefresh: () async => bloc.add(PagingRefresh()),
+                  onRefresh: () async => bloc.add(const PagingRefresh()),
                   child: CustomScrollView(
                     slivers: [
-                      SearchInputSliver(
-                        onChanged: (searchTerm) => bloc.add(PagingChangeSearch(searchTerm)),
-                        getSuggestions: (searchTerm) => (state.items
-                                ?.expand((photo) => photo.title.split(' '))
-                                .where((e) => e.contains(searchTerm))
-                                .toSet()
-                                .toList() ??
-                            []),
-                      ),
-                      PagedSliverGrid<int, Photo>(
+                      PagedSliverGrid<int, Photo, Object>(
                         state: state,
-                        fetchNextPage: () => bloc.add(PagingFetchNext()),
+                        fetchNextPage: () => bloc.add(const PagingFetchNext()),
                         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                           childAspectRatio: 1 / 1.2,
                           crossAxisSpacing: 10,

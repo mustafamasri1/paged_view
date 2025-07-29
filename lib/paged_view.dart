@@ -2,7 +2,7 @@ export 'src/base/paged_child_builder_delegate.dart';
 export 'src/base/paged_layout_builder.dart';
 
 export 'src/core/paging_state.dart';
-export 'src/core/paginated_state.dart';
+export 'src/core/default_paginated_state.dart';
 export 'src/core/paging_status.dart';
 export 'src/core/extensions.dart';
 

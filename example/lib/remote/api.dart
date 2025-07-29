@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:infinite_example/remote/item.dart';
 import 'package:http/http.dart' as http;
+import 'package:infinite_example/remote/item.dart';
 
 sealed class RemoteApi {
   static Future<List<Photo>> getPhotos(

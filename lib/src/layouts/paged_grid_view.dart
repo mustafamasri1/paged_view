@@ -8,7 +8,7 @@ import 'package:paged_view/src/layouts/paged_sliver_grid.dart';
 ///
 /// Wraps a [PagedSliverGrid] in a [BoxScrollView] so that it can be
 /// used without the need for a [CustomScrollView]. Similar to a [GridView].
-class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
+class PagedGridView<PageKeyType, ItemType, ErrorType extends Object> extends BoxScrollView {
   const PagedGridView({
     required this.state,
     required this.fetchNextPage,
@@ -51,7 +51,7 @@ class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
         );
 
   /// Matches [PagedLayoutBuilder.state].
-  final PagingState<PageKeyType, ItemType> state;
+  final PagingState<PageKeyType, ItemType, ErrorType> state;
 
   /// Matches [PagedLayoutBuilder.fetchNextPage].
   final NextPageCallback fetchNextPage;
@@ -84,7 +84,7 @@ class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
   final bool _shrinkWrapFirstPageIndicators;
 
   @override
-  Widget buildChildLayout(BuildContext context) => PagedSliverGrid<PageKeyType, ItemType>(
+  Widget buildChildLayout(BuildContext context) => PagedSliverGrid<PageKeyType, ItemType, ErrorType>(
         builderDelegate: builderDelegate,
         state: state,
         fetchNextPage: fetchNextPage,
@@ -97,4 +97,13 @@ class PagedGridView<PageKeyType, ItemType> extends BoxScrollView {
         showNoMoreItemsIndicatorAsGridChild: showNoMoreItemsIndicatorAsGridChild,
         shrinkWrapFirstPageIndicators: _shrinkWrapFirstPageIndicators,
       );
+
+  @override
+  ScrollPhysics? get physics {
+    // Disable scrolling during refresh to prevent interference
+    if (state.isRefreshing) {
+      return const NeverScrollableScrollPhysics();
+    }
+    return super.physics;
+  }
 }

@@ -11,7 +11,7 @@ import 'package:paged_view/src/helpers/appended_sliver_child_builder_delegate.da
 ///
 /// Similar to a [PageView].
 /// Useful for combining another paged widget with a page view with details.
-class PagedPageView<PageKeyType, ItemType> extends StatelessWidget {
+class PagedPageView<PageKeyType, ItemType, ErrorType extends Object> extends StatelessWidget {
   const PagedPageView({
     required this.state,
     required this.fetchNextPage,
@@ -36,7 +36,7 @@ class PagedPageView<PageKeyType, ItemType> extends StatelessWidget {
   });
 
   /// Matches [PagedLayoutBuilder.state].
-  final PagingState<PageKeyType, ItemType> state;
+  final PagingState<PageKeyType, ItemType, ErrorType> state;
 
   /// Matches [PagedLayoutBuilder.fetchNextPage].
   final NextPageCallback fetchNextPage;
@@ -93,7 +93,7 @@ class PagedPageView<PageKeyType, ItemType> extends StatelessWidget {
   final bool shrinkWrapFirstPageIndicators;
 
   @override
-  Widget build(BuildContext context) => PagedLayoutBuilder<PageKeyType, ItemType>(
+  Widget build(BuildContext context) => PagedLayoutBuilder<PageKeyType, ItemType, ErrorType>(
         layoutProtocol: PagedLayoutProtocol.box,
         state: state,
         fetchNextPage: fetchNextPage,
@@ -116,7 +116,7 @@ class PagedPageView<PageKeyType, ItemType> extends StatelessWidget {
           clipBehavior: clipBehavior,
           allowImplicitScrolling: allowImplicitScrolling,
           reverse: reverse,
-          physics: physics,
+          physics: state.isRefreshing ? const NeverScrollableScrollPhysics() : physics,
           pageSnapping: pageSnapping,
           padEnds: padEnds,
           childrenDelegate: AppendedSliverChildBuilderDelegate(
@@ -145,7 +145,7 @@ class PagedPageView<PageKeyType, ItemType> extends StatelessWidget {
           clipBehavior: clipBehavior,
           allowImplicitScrolling: allowImplicitScrolling,
           reverse: reverse,
-          physics: physics,
+          physics: state.isRefreshing ? const NeverScrollableScrollPhysics() : physics,
           pageSnapping: pageSnapping,
           padEnds: padEnds,
           childrenDelegate: AppendedSliverChildBuilderDelegate(
@@ -174,7 +174,7 @@ class PagedPageView<PageKeyType, ItemType> extends StatelessWidget {
           clipBehavior: clipBehavior,
           allowImplicitScrolling: allowImplicitScrolling,
           reverse: reverse,
-          physics: physics,
+          physics: state.isRefreshing ? const NeverScrollableScrollPhysics() : physics,
           pageSnapping: pageSnapping,
           padEnds: padEnds,
           childrenDelegate: AppendedSliverChildBuilderDelegate(

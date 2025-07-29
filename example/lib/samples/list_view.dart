@@ -21,7 +21,7 @@ class _ListViewScreenState extends State<ListViewScreen> {
   @override
   void initState() {
     super.initState();
-    bloc.add(PagingFetchNext());
+    bloc.add(const PagingFetchNext());
   }
 
   @override
@@ -32,14 +32,16 @@ class _ListViewScreenState extends State<ListViewScreen> {
           body: BlocBuilder<PagingBloc<Photo>, PaginatedState<Photo>>(
             builder: (context, state) {
               return RefreshIndicator(
-                  onRefresh: () async => context.read<PagingBloc<Photo>>().add(PagingRefresh()),
+                  onRefresh: () async =>
+                      context.read<PagingBloc<Photo>>().add(const PagingRefresh()),
 
                   /// The [PagingListener] is a widget that listens to the controller and
                   /// rebuilds the UI based on the state of the controller.
                   /// Its the easiest way to bind your controller to a Paged layout.
-                  child: PagedListView<int, Photo>.separated(
+                  child: PagedListView<int, Photo, Object>.separated(
                     state: state,
-                    fetchNextPage: () => context.read<PagingBloc<Photo>>().add(PagingFetchNext()),
+                    fetchNextPage: () =>
+                        context.read<PagingBloc<Photo>>().add(const PagingFetchNext()),
                     itemExtent: 48,
                     builderDelegate: PagedChildBuilderDelegate(
                       animateTransitions: true,

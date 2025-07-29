@@ -12,7 +12,7 @@ import 'package:paged_view/src/layouts/paged_grid_view.dart';
 /// [CustomScrollView] when added to the screen.
 /// Useful for combining multiple scrollable pieces in your UI or if you need
 /// to add some widgets preceding or following your paged grid.
-class PagedSliverGrid<PageKeyType, ItemType> extends StatelessWidget {
+class PagedSliverGrid<PageKeyType, ItemType, ErrorType extends Object> extends StatelessWidget {
   const PagedSliverGrid({
     required this.state,
     required this.fetchNextPage,
@@ -29,7 +29,7 @@ class PagedSliverGrid<PageKeyType, ItemType> extends StatelessWidget {
   });
 
   /// Matches [PagedLayoutBuilder.state].
-  final PagingState<PageKeyType, ItemType> state;
+  final PagingState<PageKeyType, ItemType, ErrorType> state;
 
   /// Matches [PagedLayoutBuilder.fetchNextPage].
   final NextPageCallback fetchNextPage;
@@ -71,7 +71,7 @@ class PagedSliverGrid<PageKeyType, ItemType> extends StatelessWidget {
   final bool shrinkWrapFirstPageIndicators;
 
   @override
-  Widget build(BuildContext context) => PagedLayoutBuilder<PageKeyType, ItemType>(
+  Widget build(BuildContext context) => PagedLayoutBuilder<PageKeyType, ItemType, ErrorType>(
         layoutProtocol: PagedLayoutProtocol.sliver,
         state: state,
         fetchNextPage: fetchNextPage,

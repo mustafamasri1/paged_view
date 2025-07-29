@@ -22,7 +22,7 @@ class _PageViewScreenState extends State<PageViewScreen> {
   /// This is the most direct way to use the package.
   /// For a more managed approach, see [ListViewScreen].
   /// For managing your [PagingState] inside your own controller, see [SliverGridScreen].
-  PagingState<int, Photo> _state = const PaginatedState();
+  PagingState<int, Photo, Object> _state = const DefaultPaginatedState();
 
   void fetchNextPage() async {
     if (_state.isLoading) return;
@@ -80,7 +80,7 @@ class _PageViewScreenState extends State<PageViewScreen> {
     return Stack(
       fit: StackFit.passthrough,
       children: [
-        PagedPageView<int, Photo>(
+        PagedPageView<int, Photo, Object>(
           pageController: _pageController,
           state: _state,
           fetchNextPage: fetchNextPage,

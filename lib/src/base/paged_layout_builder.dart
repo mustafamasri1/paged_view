@@ -47,7 +47,7 @@ enum PagedLayoutProtocol { sliver, box }
 /// For ordinary cases, this widget shouldn't be used directly. Instead, take a
 /// look at [PagedSliverList], [PagedSliverGrid], [PagedListView],
 /// [PagedGridView], [PagedMasonryGridView], or [PagedPageView].
-class PagedLayoutBuilder<PageKeyType, ItemType> extends StatefulWidget {
+class PagedLayoutBuilder<PageKeyType, ItemType, ErrorType extends Object> extends StatefulWidget {
   const PagedLayoutBuilder({
     required this.state,
     required this.fetchNextPage,
@@ -61,7 +61,7 @@ class PagedLayoutBuilder<PageKeyType, ItemType> extends StatefulWidget {
   });
 
   /// The paging state for this layout.
-  final PagingState<PageKeyType, ItemType> state;
+  final PagingState<PageKeyType, ItemType, ErrorType> state;
 
   /// A callback function that is triggered to request a new page of data.
   final NextPageCallback fetchNextPage;
@@ -97,13 +97,13 @@ class PagedLayoutBuilder<PageKeyType, ItemType> extends StatefulWidget {
   final PagedLayoutProtocol layoutProtocol;
 
   @override
-  State<PagedLayoutBuilder<PageKeyType, ItemType>> createState() =>
-      _PagedLayoutBuilderState<PageKeyType, ItemType>();
+  State<PagedLayoutBuilder<PageKeyType, ItemType, ErrorType>> createState() =>
+      _PagedLayoutBuilderState<PageKeyType, ItemType, ErrorType>();
 }
 
-class _PagedLayoutBuilderState<PageKeyType, ItemType>
-    extends State<PagedLayoutBuilder<PageKeyType, ItemType>> {
-  PagingState<PageKeyType, ItemType> get _state => widget.state;
+class _PagedLayoutBuilderState<PageKeyType, ItemType, ErrorType extends Object>
+    extends State<PagedLayoutBuilder<PageKeyType, ItemType, ErrorType>> {
+  PagingState<PageKeyType, ItemType, ErrorType> get _state => widget.state;
 
   NextPageCallback get _fetchNextPage =>
       // We make sure to only schedule the fetch after the current build is done.
@@ -153,7 +153,7 @@ class _PagedLayoutBuilderState<PageKeyType, ItemType>
   bool _hasRequestedNextPage = false;
 
   @override
-  void didUpdateWidget(covariant PagedLayoutBuilder<PageKeyType, ItemType> oldWidget) {
+  void didUpdateWidget(covariant PagedLayoutBuilder<PageKeyType, ItemType, ErrorType> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.state != widget.state) {
       if (_state.status == PagingStatus.ongoing) {
@@ -168,6 +168,7 @@ class _PagedLayoutBuilderState<PageKeyType, ItemType>
       animateTransitions: _builderDelegate.animateTransitions,
       transitionDuration: _builderDelegate.transitionDuration,
       layoutProtocol: _layoutProtocol,
+      isRefreshing: _state.isRefreshing,
       child: switch (_state.status) {
         PagingStatus.loadingFirstPage => _FirstPageStatusIndicatorBuilder(
             key: const ValueKey(PagingStatus.loadingFirstPage),
@@ -206,7 +207,7 @@ class _PagedLayoutBuilderState<PageKeyType, ItemType>
             (context, index) => _buildListItemWidget(
               context,
               index,
-              _state.items!,
+              _state.items ?? [],
             ),
             _itemCount,
             (context) => _newPageErrorIndicatorBuilder(context),
@@ -232,7 +233,8 @@ class _PagedLayoutBuilderState<PageKeyType, ItemType>
     int index,
     List<ItemType> itemList,
   ) {
-    if (!_hasRequestedNextPage) {
+    // Don't trigger pagination during refresh operations
+    if (!_hasRequestedNextPage && !_state.isRefreshing) {
       final maxIndex = max(0, _itemCount - 1);
       final triggerIndex = max(0, maxIndex - _invisibleItemsThreshold);
 
@@ -263,24 +265,39 @@ class _PagedLayoutAnimator extends StatelessWidget {
     required this.animateTransitions,
     required this.transitionDuration,
     required this.layoutProtocol,
+    required this.isRefreshing,
   });
 
   final Widget child;
   final bool animateTransitions;
   final Duration transitionDuration;
   final PagedLayoutProtocol layoutProtocol;
-
+  final bool isRefreshing;
   @override
   Widget build(BuildContext context) {
     if (!animateTransitions) return child;
     return switch (layoutProtocol) {
-      PagedLayoutProtocol.sliver => SliverAnimatedSwitcher(
+      PagedLayoutProtocol.sliver => SliverAnimatedOpacity(
+          opacity: isRefreshing ? 0.5 : 1.0,
           duration: transitionDuration,
-          child: child,
+          sliver: SliverIgnorePointer(
+            ignoring: isRefreshing,
+            sliver: SliverAnimatedSwitcher(
+              duration: transitionDuration,
+              child: child,
+            ),
+          ),
         ),
-      PagedLayoutProtocol.box => AnimatedSwitcher(
+      PagedLayoutProtocol.box => AnimatedOpacity(
+          opacity: isRefreshing ? 0.5 : 1.0,
           duration: transitionDuration,
-          child: child,
+          child: IgnorePointer(
+            ignoring: isRefreshing,
+            child: AnimatedSwitcher(
+              duration: transitionDuration,
+              child: child,
+            ),
+          ),
         ),
     };
   }

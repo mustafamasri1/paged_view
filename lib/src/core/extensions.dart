@@ -1,8 +1,9 @@
-import 'package:paged_view/src/core/paging_state.dart';
 import 'package:meta/meta.dart';
+import 'package:paged_view/src/core/paging_state.dart';
 
 /// Helper extensions to make working with [PagingState] easier.
-extension PagingStateExtension<PageKeyType, ItemType> on PagingState<PageKeyType, ItemType> {
+extension PagingStateExtension<PageKeyType, ItemType, ErrorType extends Object>
+    on PagingState<PageKeyType, ItemType, ErrorType> {
   /// The list of items fetched so far. A flattened version of [pages].
   List<ItemType>? get items => pages != null ? List.unmodifiable(pages!.expand((e) => e)) : null;
 
@@ -11,7 +12,7 @@ extension PagingStateExtension<PageKeyType, ItemType> on PagingState<PageKeyType
   /// The result of this method is a new [PagingState] with the same properties as the original state
   /// except for the items, which are replaced by the mapped items.
   @UseResult('Use the returned value as new state.')
-  PagingState<PageKeyType, ItemType> mapItems(
+  PagingState<PageKeyType, ItemType, ErrorType> mapItems(
     ItemType Function(ItemType item) mapper,
   ) =>
       copyWith(
@@ -26,7 +27,7 @@ extension PagingStateExtension<PageKeyType, ItemType> on PagingState<PageKeyType
   /// It is not recommended to reassign the result of this method back to a state variable, because
   /// the filtered items will be lost. Instead, use the returned value as computed state only.
   @UseResult('Use the returned value as computed state.')
-  PagingState<PageKeyType, ItemType> filterItems(
+  PagingState<PageKeyType, ItemType, ErrorType> filterItems(
     bool Function(ItemType item) predicate,
   ) =>
       copyWith(
@@ -43,9 +44,10 @@ extension PagingStateExtension<PageKeyType, ItemType> on PagingState<PageKeyType
 }
 
 /// Helper extensions to make working with [PagingState] with integer keys easier.
-extension IntPagingStateExtension<ItemType> on PagingState<int, ItemType> {
+extension IntPagingStateExtension<ItemType, ErrorType extends Object>
+    on PagingState<int, ItemType, ErrorType> {
   /// Convenience method to get the next page key.
   ///
   /// Assumes that keys start at 1 and increment by 1.
-  int get nextIntPageKey => (keys?.lastOrNull ?? 0) + 1;
+  int get nextIntPageKey => isRefreshing ? 1 : (keys?.lastOrNull ?? 0) + 1;
 }
