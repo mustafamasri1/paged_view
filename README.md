@@ -10,8 +10,9 @@ A Flutter package that provides pagination widgets for displaying large datasets
 - **PagedSliverList** - Sliver list for use in CustomScrollView
 - **PagedSliverGrid** - Sliver grid for use in CustomScrollView
 - **Customizable indicators** - Built-in progress, error, and empty state indicators
+- **Pull-to-refresh support** - Built-in refresh capabilities with timing information
 - **State management agnostic** - Works with any state management solution
-- **Flexible architecture** - Implement your own PagingState or use the provided PaginatedState
+- **Flexible architecture** - Implement your own PagingState or use the provided DefaultPaginatedState
 
 ## Installation
 
@@ -26,11 +27,11 @@ dependencies:
 
 ### 1. Define your state
 
-Implement the `PagingState` interface or use the provided `PaginatedState`:
+Implement the `PagingState` interface or use the provided `DefaultPaginatedState`:
 
 ```dart
-// Using the provided PaginatedState
-PagingState<int, Photo> state = const PaginatedState<int, Photo>();
+// Using the provided DefaultPaginatedState
+PagingState<int, Photo> state = const DefaultPaginatedState<int, Photo>();
 
 // Or implement your own
 class MyPagingState implements PagingState<int, Photo> {
@@ -69,6 +70,30 @@ PagedListView<int, Photo>.separated(
 ```
 
 ## Advanced Usage
+
+### Pull-to-refresh
+
+```dart
+RefreshIndicator(
+  onRefresh: () async {
+    // Trigger refresh in your state management solution
+    // For example, with BLoC:
+    context.read<PhotoBloc>().add(RefreshPhotos());
+    
+    // Wait for refresh to complete
+    await bloc.stream.firstWhere((state) => !state.isRefreshing);
+  },
+  child: PagedListView<int, Photo>(
+    state: state,
+    fetchNextPage: () => loadNextPage(),
+    builderDelegate: PagedChildBuilderDelegate<Photo>(
+      itemBuilder: (context, item, index) => ListTile(
+        title: Text(item.title),
+      ),
+    ),
+  ),
+)
+```
 
 ### PagedGridView
 
@@ -126,16 +151,17 @@ CustomScrollView(
 ### With BLoC
 
 ```dart
-class PhotoBloc extends Bloc<PhotoEvent, PaginatedState<int, Photo>> {
-  PhotoBloc() : super(const PaginatedState<int, Photo>()) {
+class PhotoBloc extends Bloc<PhotoEvent, DefaultPaginatedState<int, Photo>> {
+  PhotoBloc() : super(const DefaultPaginatedState<int, Photo>()) {
     on<LoadNextPage>(_onLoadNextPage);
+    on<RefreshPhotos>(_onRefreshPhotos);
   }
 
   Future<void> _onLoadNextPage(
     LoadNextPage event,
-    Emitter<PaginatedState<int, Photo>> emit,
+    Emitter<DefaultPaginatedState<int, Photo>> emit,
   ) async {
-    if (state.isLoading) return;
+    if (state.isLoading || state.isRefreshing) return;
     
     emit(state.copyWith(isLoading: true));
     
@@ -143,14 +169,25 @@ class PhotoBloc extends Bloc<PhotoEvent, PaginatedState<int, Photo>> {
       final nextPageKey = (state.keys?.lastOrNull ?? 0) + 1;
       final newPhotos = await photoRepository.getPhotos(nextPageKey);
       
-      emit(state.copyWith(
-        pages: [...?state.pages, newPhotos],
-        keys: [...?state.keys, nextPageKey],
-        hasNextPage: newPhotos.isNotEmpty,
-        isLoading: false,
-      ));
+      emit(state.appendPage(newPhotos, nextPageKey, isLastPage: newPhotos.isEmpty));
     } catch (error) {
-      emit(state.copyWith(error: error, isLoading: false));
+      emit(state.setError(error));
+    }
+  }
+
+  Future<void> _onRefreshPhotos(
+    RefreshPhotos event,
+    Emitter<DefaultPaginatedState<int, Photo>> emit,
+  ) async {
+    if (state.isLoading || state.isRefreshing) return;
+    
+    emit(state.refreshing());
+    
+    try {
+      final newPhotos = await photoRepository.getPhotos(1);
+      emit(state.appendPage(newPhotos, 1, isLastPage: newPhotos.isEmpty));
+    } catch (error) {
+      emit(state.setError(error));
     }
   }
 }
@@ -165,31 +202,44 @@ class PhotoPage extends StatefulWidget {
 }
 
 class _PhotoPageState extends State<PhotoPage> {
-  PagingState<int, Photo> _state = const PaginatedState<int, Photo>();
+  PagingState<int, Photo> _state = const DefaultPaginatedState<int, Photo>();
 
   void _fetchNextPage() async {
-    if (_state.isLoading) return;
+    if (_state.isLoading || _state.isRefreshing) return;
 
     setState(() {
-      _state = _state.copyWith(isLoading: true, error: null);
+      _state = _state.copyWith(isLoading: true);
     });
 
     try {
       final nextPageKey = (_state.keys?.lastOrNull ?? 0) + 1;
       final newPhotos = await RemoteApi.getPhotos(nextPageKey);
-      final isLastPage = newPhotos.isEmpty;
 
       setState(() {
-        _state = _state.copyWith(
-          pages: [...?_state.pages, newPhotos],
-          keys: [...?_state.keys, nextPageKey],
-          hasNextPage: !isLastPage,
-          isLoading: false,
-        );
+        _state = _state.appendPage(newPhotos, nextPageKey, isLastPage: newPhotos.isEmpty);
       });
     } catch (error) {
       setState(() {
-        _state = _state.copyWith(error: error, isLoading: false);
+        _state = _state.setError(error);
+      });
+    }
+  }
+
+  void _refresh() async {
+    if (_state.isLoading || _state.isRefreshing) return;
+
+    setState(() {
+      _state = _state.refreshing();
+    });
+
+    try {
+      final newPhotos = await RemoteApi.getPhotos(1);
+      setState(() {
+        _state = _state.appendPage(newPhotos, 1, isLastPage: newPhotos.isEmpty);
+      });
+    } catch (error) {
+      setState(() {
+        _state = _state.setError(error);
       });
     }
   }
@@ -202,11 +252,20 @@ class _PhotoPageState extends State<PhotoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PagedListView<int, Photo>(
-      state: _state,
-      fetchNextPage: _fetchNextPage,
-      builderDelegate: PagedChildBuilderDelegate<Photo>(
-        itemBuilder: (context, item, index) => PhotoTile(photo: item),
+    return RefreshIndicator(
+      onRefresh: () async {
+        _refresh();
+        // Wait for refresh to complete
+        while (_state.isRefreshing) {
+          await Future.delayed(const Duration(milliseconds: 100));
+        }
+      },
+      child: PagedListView<int, Photo>(
+        state: _state,
+        fetchNextPage: _fetchNextPage,
+        builderDelegate: PagedChildBuilderDelegate<Photo>(
+          itemBuilder: (context, item, index) => PhotoTile(photo: item),
+        ),
       ),
     );
   }
