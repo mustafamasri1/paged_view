@@ -29,7 +29,7 @@ class _ListViewScreenState extends State<ListViewScreen> {
         create: (context) => bloc,
         child: Scaffold(
           appBar: AppBar(
-            title: BlocBuilder<PagingBloc<Photo>, DefaultPaginatedState<int, Photo>>(
+            title: BlocBuilder<PagingBloc<Photo>, PaginatedState<Photo>>(
               builder: (context, state) {
                 return Text(
                   '${state.refreshCompletedAt?.toLocal().toIso8601String() ?? 'Never'}',
@@ -37,7 +37,7 @@ class _ListViewScreenState extends State<ListViewScreen> {
               },
             ),
           ),
-          body: BlocBuilder<PagingBloc<Photo>, DefaultPaginatedState<int, Photo>>(
+          body: BlocBuilder<PagingBloc<Photo>, PaginatedState<Photo>>(
             builder: (context, state) {
               return RefreshIndicator(
                 onRefresh: () async {

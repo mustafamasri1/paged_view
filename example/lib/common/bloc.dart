@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:paged_view/paged_view.dart';
 
+typedef PaginatedState<T> = DefaultPaginatedState<int, T, Object>;
+
 sealed class PagingEvent {
   const PagingEvent();
 }
@@ -43,10 +45,10 @@ class BlocCancelToken {
   }
 }
 
-class PagingBloc<T> extends Bloc<PagingEvent, DefaultPaginatedState<int, T>> {
+class PagingBloc<T> extends Bloc<PagingEvent, PaginatedState<T>> {
   PagingBloc({
     required this.fetchFn,
-  }) : super(DefaultPaginatedState<int, T>()) {
+  }) : super(PaginatedState<T>()) {
     on<PagingFetchNext>(_onFetchNext);
     on<PagingRefresh>(_onRefresh);
   }
@@ -55,7 +57,7 @@ class PagingBloc<T> extends Bloc<PagingEvent, DefaultPaginatedState<int, T>> {
 
   Future<void> _onFetchNext(
     PagingFetchNext event,
-    Emitter<DefaultPaginatedState<int, T>> emit,
+    Emitter<PaginatedState<T>> emit,
   ) async {
     final current = state;
     if (current.isLoading || !current.hasNextPage) return;
@@ -82,7 +84,7 @@ class PagingBloc<T> extends Bloc<PagingEvent, DefaultPaginatedState<int, T>> {
 
   Future<void> _onRefresh(
     PagingRefresh event,
-    Emitter<DefaultPaginatedState<int, T>> emit,
+    Emitter<PaginatedState<T>> emit,
   ) async {
     emit(state.refreshing());
     add(const PagingFetchNext());

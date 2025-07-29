@@ -28,8 +28,7 @@ class _SliverGridScreenState extends State<SliverGridScreen> {
   @override
   Widget build(BuildContext context) => BlocProvider(
         create: (context) => bloc,
-        child: BlocBuilder<PagingBloc<Photo>, DefaultPaginatedState<int, Photo>>(
-            builder: (context, state) {
+        child: BlocBuilder<PagingBloc<Photo>, PaginatedState<Photo>>(builder: (context, state) {
           return LayoutBuilder(
             builder: (context, constraints) {
               final bloc = context.read<PagingBloc<Photo>>();
