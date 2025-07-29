@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 import '../../paged_view.dart';
 
 @immutable
-class DefaultPaginatedState<PageKeyType, ItemType, ErrorType extends Object>
+class BasePagingState<PageKeyType, ItemType, ErrorType extends Object>
     implements PagingState<PageKeyType, ItemType, ErrorType> {
-  const DefaultPaginatedState({
+  const BasePagingState({
     this.pages,
     this.keys,
     this.error,
@@ -45,7 +45,7 @@ class DefaultPaginatedState<PageKeyType, ItemType, ErrorType extends Object>
     Defaulted<bool>? isRefreshing = const Omit(),
     Defaulted<int>? total = const Omit(),
   }) {
-    return DefaultPaginatedState<PageKeyType, ItemType, ErrorType>(
+    return BasePagingState<PageKeyType, ItemType, ErrorType>(
       pages: pages is Omit ? this.pages : pages as List<List<ItemType>>?,
       keys: keys is Omit ? this.keys : keys as List<PageKeyType>?,
       error: error is Omit ? this.error : error as ErrorType?,
@@ -91,7 +91,7 @@ class DefaultPaginatedState<PageKeyType, ItemType, ErrorType extends Object>
 
   @override
   PagingState<PageKeyType, ItemType, ErrorType> reset() {
-    return DefaultPaginatedState<PageKeyType, ItemType, ErrorType>(
+    return BasePagingState<PageKeyType, ItemType, ErrorType>(
       pages: null,
       keys: null,
       error: null,
@@ -129,7 +129,7 @@ class DefaultPaginatedState<PageKeyType, ItemType, ErrorType extends Object>
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is DefaultPaginatedState<PageKeyType, ItemType, ErrorType> &&
+    return other is BasePagingState<PageKeyType, ItemType, ErrorType> &&
         listEquals(other.pages, pages) &&
         listEquals(other.keys, keys) &&
         other.error == error &&

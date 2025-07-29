@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:paged_view/src/core/default_paginated_state.dart';
+import 'package:paged_view/src/core/base_paging_state.dart';
 
 /// Defines the type of refresh operation to perform.
-/// 
+///
 /// During refresh operations, user interaction and scroll-triggered pagination
 /// are automatically blocked to prevent interference with the refresh process.
 enum RefreshType {
@@ -30,7 +30,7 @@ abstract class PagingState<PageKeyType, ItemType, ErrorType extends Object> {
     bool isLoading,
     bool isRefreshing,
     int total,
-  }) = DefaultPaginatedState<PageKeyType, ItemType, ErrorType>;
+  }) = BasePagingState<PageKeyType, ItemType, ErrorType>;
 
   /// The pages fetched so far.
   ///
@@ -73,6 +73,7 @@ abstract class PagingState<PageKeyType, ItemType, ErrorType extends Object> {
     Defaulted<bool>? hasNextPage = const Omit(),
     Defaulted<bool>? isLoading = const Omit(),
     Defaulted<bool>? isRefreshing = const Omit(),
+    Defaulted<int>? total = const Omit(),
   });
 
   /// Returns a copy this [PagingState] but
