@@ -30,8 +30,14 @@ abstract class PagingState<PageKeyType, ItemType> {
   /// Will be `true` if the data is being refreshed while preserving existing pages.
   bool get isRefreshing;
 
-  /// Timestamp indicating when the last refresh completed.
-  /// Used to trigger UI animations when refresh finishes.
+  /// Timestamp indicating when the last refresh operation completed.
+  /// 
+  /// This can be used for:
+  /// - Triggering refresh completion animations
+  /// - Displaying "Last refreshed at" information in the UI
+  /// - Implementing refresh cooldown logic
+  /// 
+  /// The value is `null` when no refresh has been performed yet.
   DateTime? get refreshCompletedAt;
 
   /// Creates a copy of this [PagingState] but with the given fields replaced by the new values.
@@ -71,7 +77,7 @@ abstract class PagingState<PageKeyType, ItemType> {
   /// Appends a new page to the state, handling both refresh and pagination scenarios.
   ///
   /// If [isRefreshing] is true, this replaces all existing pages with the new page
-  /// and sets [refreshCompletedAt] to trigger animations.
+  /// and sets [refreshCompletedAt] to the current timestamp.
   /// If [isRefreshing] is false, this appends the new page to existing pages.
   PagingState<PageKeyType, ItemType> appendPage(
     List<ItemType> newPage,
@@ -81,7 +87,8 @@ abstract class PagingState<PageKeyType, ItemType> {
 
   /// Sets an error state, handling both refresh and pagination error scenarios.
   ///
-  /// If [isRefreshing] is true, this sets [refreshCompletedAt] to complete the refresh cycle.
+  /// If [isRefreshing] is true, this sets [refreshCompletedAt] to the current timestamp
+  /// to complete the refresh cycle.
   /// If [isRefreshing] is false, this preserves the current [refreshCompletedAt] value.
   PagingState<PageKeyType, ItemType> setError(Object error);
 }

@@ -44,8 +44,13 @@ extension PagingStateExtension<PageKeyType, ItemType> on PagingState<PageKeyType
 
 /// Helper extensions to make working with [PagingState] with integer keys easier.
 extension IntPagingStateExtension<ItemType> on PagingState<int, ItemType> {
-  /// Convenience method to get the next page key.
+  /// Convenience method to get the next page key for integer-based pagination.
   ///
   /// Assumes that keys start at 1 and increment by 1.
+  /// 
+  /// Returns:
+  /// - `1` if currently refreshing (restart from first page)
+  /// - `lastKey + 1` for normal pagination
+  /// - `1` if no pages have been loaded yet
   int get nextIntPageKey => isRefreshing ? 1 : (keys?.lastOrNull ?? 0) + 1;
 }

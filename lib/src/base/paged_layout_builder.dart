@@ -168,7 +168,7 @@ class _PagedLayoutBuilderState<PageKeyType, ItemType>
       animateTransitions: _builderDelegate.animateTransitions,
       transitionDuration: _builderDelegate.transitionDuration,
       layoutProtocol: _layoutProtocol,
-      refreshCompletedAt: _state.refreshCompletedAt,
+      state: _state,
       child: switch (_state.status) {
         PagingStatus.loadingFirstPage => _FirstPageStatusIndicatorBuilder(
             key: const ValueKey(PagingStatus.loadingFirstPage),
@@ -264,33 +264,40 @@ class _PagedLayoutAnimator extends StatelessWidget {
     required this.animateTransitions,
     required this.transitionDuration,
     required this.layoutProtocol,
-    this.refreshCompletedAt,
+    required this.state,
   });
 
   final Widget child;
   final bool animateTransitions;
   final Duration transitionDuration;
   final PagedLayoutProtocol layoutProtocol;
-  final DateTime? refreshCompletedAt;
+  final PagingState state;
 
   @override
   Widget build(BuildContext context) {
     if (!animateTransitions) return child;
-
-    // Use refresh completion timestamp as key to trigger animation when refresh completes
-    final childWithKey = KeyedSubtree(
-      key: ValueKey(refreshCompletedAt?.millisecondsSinceEpoch),
-      child: child,
-    );
+    
+    // Generate a unique key for refresh completion animations.
+    // When refresh completes, refreshCompletedAt gets a new timestamp,
+    // causing AnimatedSwitcher to detect the change and trigger animation.
+    final key = state.refreshCompletedAt != null
+        ? ValueKey('${state.status}_${state.refreshCompletedAt!.millisecondsSinceEpoch}')
+        : ValueKey(state.status);
 
     return switch (layoutProtocol) {
       PagedLayoutProtocol.sliver => SliverAnimatedSwitcher(
           duration: transitionDuration,
-          child: childWithKey,
+          child: KeyedSubtree(
+            key: key,
+            child: child,
+          ),
         ),
       PagedLayoutProtocol.box => AnimatedSwitcher(
           duration: transitionDuration,
-          child: childWithKey,
+          child: KeyedSubtree(
+            key: key,
+            child: child,
+          ),
         ),
     };
   }

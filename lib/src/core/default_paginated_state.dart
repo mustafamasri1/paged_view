@@ -114,13 +114,13 @@ class DefaultPaginatedState<PageKeyType, ItemType> implements PagingState<PageKe
   DefaultPaginatedState<PageKeyType, ItemType> setError(Object error) {
     final wasRefreshing = isRefreshing;
     return DefaultPaginatedState<PageKeyType, ItemType>(
-      pages: pages,
-      keys: keys,
+      pages: wasRefreshing ? null : pages,
+      keys: wasRefreshing ? null : keys,
       error: error,
-      hasNextPage: hasNextPage,
+      hasNextPage: wasRefreshing ? true : hasNextPage,
       isLoading: false,
       isRefreshing: false,
-      refreshCompletedAt: wasRefreshing ? DateTime.now() : refreshCompletedAt,
+      refreshCompletedAt: refreshCompletedAt,
       total: total,
     );
   }

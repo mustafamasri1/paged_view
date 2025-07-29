@@ -28,7 +28,15 @@ class _ListViewScreenState extends State<ListViewScreen> {
   Widget build(BuildContext context) => BlocProvider(
         create: (context) => bloc,
         child: Scaffold(
-          appBar: AppBar(),
+          appBar: AppBar(
+            title: BlocBuilder<PagingBloc<Photo>, DefaultPaginatedState<int, Photo>>(
+              builder: (context, state) {
+                return Text(
+                  '${state.refreshCompletedAt?.toLocal().toIso8601String() ?? 'Never'}',
+                );
+              },
+            ),
+          ),
           body: BlocBuilder<PagingBloc<Photo>, DefaultPaginatedState<int, Photo>>(
             builder: (context, state) {
               return RefreshIndicator(

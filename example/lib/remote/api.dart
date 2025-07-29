@@ -11,19 +11,12 @@ sealed class RemoteApi {
     int limit = 20,
     String? search,
   }) async {
-    await Future.delayed(const Duration(seconds: 1));
-    throw UnimplementedError(
-      'RemoteApi.getPhotos is not implemented. Please provide a valid implementation.',
-    );
-    return Future.delayed(
-      const Duration(seconds: 0),
-      () => http.get(_ApiUrlBuilder.photos(page, limit, search), headers: {
-        HttpHeaders.acceptHeader: 'application/json',
-      }).mapFromResponse<List<Photo>, List<dynamic>>(
-        (jsonArray) => _parseItemListFromJsonArray(
-          jsonArray,
-          Photo.fromPlaceholderJson,
-        ),
+    return http.get(_ApiUrlBuilder.photos(page, limit, search), headers: {
+      HttpHeaders.acceptHeader: 'application/json',
+    }).mapFromResponse<List<Photo>, List<dynamic>>(
+      (jsonArray) => _parseItemListFromJsonArray(
+        jsonArray,
+        Photo.fromPlaceholderJson,
       ),
     );
   }

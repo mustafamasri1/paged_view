@@ -1,13 +1,24 @@
 import 'package:paged_view/src/core/extensions.dart';
 import 'package:paged_view/src/core/paging_state.dart';
 
-/// All possible status for a pagination.
+/// All possible statuses for a paged view's pagination state.
 enum PagingStatus {
+  /// No items were found (empty result from first page)
   noItemsFound,
+  
+  /// Currently loading the first page of data
   loadingFirstPage,
+  
+  /// An error occurred while loading the first page
   firstPageError,
+  
+  /// Successfully loaded items and more pages are available
   ongoing,
+  
+  /// An error occurred while loading a subsequent page
   subsequentPageError,
+  
+  /// All pages have been loaded successfully
   completed,
 }
 
